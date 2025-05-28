@@ -52,17 +52,6 @@ model fee {
   productfee productfee[]
 }
 
-model location {
-  id           Int      @id @default(autoincrement())
-  province     String?  @db.VarChar(50)
-  district     String?  @db.VarChar(50)
-  commune      String?  @db.VarChar(50)
-  address      String?  @db.VarChar(255)
-  housing_type String?  @db.VarChar(50)
-  orders       orders[]
-  users        users[]
-}
-
 model orderproduct {
   order_id   Int
   product_id Int
@@ -79,7 +68,7 @@ model orders {
   date                DateTime?      @default(now()) @db.Timestamp(6)
   total_product_cost  Decimal?       @db.Decimal(10, 2)
   total_shipping_cost Decimal?       @db.Decimal(10, 2)
-  payment_method      String?        @db.VarChar(50)
+  payment_method      Boolean?
   total_price         Decimal?       @db.Decimal(10, 2)
   orderproduct        orderproduct[]
   location            location?      @relation(fields: [location_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -108,7 +97,6 @@ model product {
   name               String            @db.VarChar(100)
   price              Decimal           @db.Decimal(10, 2)
   size               String?           @db.VarChar(20)
-  quantity           Int?              @default(0)
   color              String?           @db.VarChar(20)
   categoryproduct    categoryproduct[]
   orderproduct       orderproduct[]
@@ -147,28 +135,39 @@ model store {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model users {
-  id          Int       @id @default(autoincrement())
-  user_type   String    @db.VarChar(20)
-  name        String?   @db.VarChar(100)
-  email       String?   @unique @db.VarChar(100)
-  password    String?   @db.VarChar(255)
-  phone       String?   @db.VarChar(20)
-  location_id Int?
-  cart_id     Int?      @unique
-  orders      orders[]
-  cart        cart?     @relation(fields: [cart_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  location    location? @relation(fields: [location_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  voucher     voucher[]
+  id            Int       @id @default(autoincrement())
+  is_registered Boolean
+  name          String?   @db.VarChar(100)
+  email         String?   @unique @db.VarChar(100)
+  password      String?   @db.VarChar(255)
+  phone         String?   @db.VarChar(20)
+  location_id   Int?
+  cart_id       Int?      @unique
+  orders        orders[]
+  cart          cart?     @relation(fields: [cart_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  location      location? @relation(fields: [location_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  voucher       voucher[]
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model voucher {
   id              Int              @id @default(autoincrement())
   user_id         Int?
-  discount_type   String           @db.VarChar(20)
+  is_percentage   Boolean
   ordervoucher    ordervoucher[]
   paymentvoucher  paymentvoucher?
   productvoucher  productvoucher?
   shippingvoucher shippingvoucher?
   users           users?           @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model location {
+  id           Int      @id @default(autoincrement())
+  province     String?  @db.VarChar(50)
+  district     String?  @db.VarChar(50)
+  commune      String?  @db.VarChar(50)
+  address      String?  @db.VarChar(255)
+  housing_type String?  @db.VarChar(50)
+  orders       orders[]
+  users        users[]
 }
