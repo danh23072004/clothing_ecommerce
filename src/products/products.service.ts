@@ -27,6 +27,7 @@ export class ProductsService {
 
 	/** Retrieves a single product by ID */
 	async findOne(id: number) {
+		console.log('Products with id ', id);
 		return this.databaseService.product.findUnique({
 			where: { id },
 		});
@@ -45,5 +46,11 @@ export class ProductsService {
 		return this.databaseService.product.delete({
 			where: { id },
 		});
+	}
+
+	/** Retrieves all product categories */
+	async getAllCategories() {
+		console.log('fetching all categories');
+		return this.databaseService.category.findMany();
 	}
 }

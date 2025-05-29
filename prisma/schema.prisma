@@ -55,6 +55,7 @@ model fee {
 model orderproduct {
   order_id   Int
   product_id Int
+  quantity   Int     @default(1)
   orders     orders  @relation(fields: [order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   product    product @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 

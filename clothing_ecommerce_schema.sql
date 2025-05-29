@@ -147,12 +147,18 @@ INSERT INTO public.Location (province, district, commune, address, housing_type)
 ('Ho Chi Minh', 'District 1', 'Ben Thanh', '456 Le Loi Street', 'House'),
 ('Da Nang', 'Hai Chau', 'Thanh Khe', '789 Tran Phu Street', 'Villa'),
 ('Hue', 'Phu Nhuan', 'Thanh Loc', '101 Nguyen Hue Street', 'Townhouse'),
-('Can Tho', 'Ninh Kieu', 'Cai Khe', '202 Vo Van Tan Street', 'Condo');
+('Can Tho', 'Ninh Kieu', 'Cai Khe', '202 Vo Van Tan Street', 'Condo'),
+('Bac Kan', 'Ba Be', 'Phuc Loc', '73 Tan Hoa 2', 'Private House');
 
 -- Insert into Cart (10 entries, one per user)
-INSERT INTO public.Cart (number_of_items, total_product_cost) VALUES
-(0, 0.00), (0, 0.00), (0, 0.00), (0, 0.00), (0, 0.00),
-(0, 0.00), (0, 0.00), (0, 0.00), (0, 0.00), (0, 0.00);
+-- INSERT INTO public.Cart (number_of_items, total_product_cost) VALUES
+-- (0, 0.00), (0, 0.00), (0, 0.00), (0, 0.00), (0, 0.00),
+-- (0, 0.00), (0, 0.00), (0, 0.00), (0, 0.00), (0, 0.00);
+
+-- This will create 11 entries in the Cart table, each with default values
+INSERT INTO public.Cart (number_of_items, total_product_cost)
+SELECT 0, 0.00
+FROM GENERATE_SERIES(1, 11);
 
 -- Insert into Users (10 entries: 5 registered, 5 guests)
 INSERT INTO public.Users (is_registered, name, email, password, phone, location_id, cart_id) VALUES
@@ -161,11 +167,12 @@ INSERT INTO public.Users (is_registered, name, email, password, phone, location_
 (TRUE, 'Alice Johnson', 'alice@example.com', 'password789', '0112233445', 3, 3),
 (TRUE, 'Bob Brown', 'bob@example.com', 'passwordabc', '0556677889', 4, 4),
 (TRUE, 'Charlie Davis', 'charlie@example.com', 'passworddef', '0998877665', 5, 5),
-(FALSE, 'Guest1', NULL, NULL, NULL, NULL, 6),
-(FALSE, 'Guest2', NULL, NULL, NULL, NULL, 7),
-(FALSE, 'Guest3', NULL, NULL, NULL, NULL, 8),
-(FALSE, 'Guest4', NULL, NULL, NULL, NULL, 9),
-(FALSE, 'Guest5', NULL, NULL, NULL, NULL, 10);
+(TRUE, 'Nguyen Minh Hieu', 'minhhieu@example.com', 'passwordminh_hieu', '0123456780', 6, 6),
+(FALSE, 'Guest1', NULL, NULL, NULL, NULL, 7),
+(FALSE, 'Guest2', NULL, NULL, NULL, NULL, 8),
+(FALSE, 'Guest3', NULL, NULL, NULL, NULL, 9),
+(FALSE, 'Guest4', NULL, NULL, NULL, NULL, 10),
+(FALSE, 'Guest5', NULL, NULL, NULL, NULL, 11);
 
 -- Insert into DiscountEntity (14 entries to support categories and products)
 DO $$
@@ -222,7 +229,51 @@ INSERT INTO public.Orders (user_id, location_id, date, total_product_cost, total
 (2, 2, '2023-01-02 13:00:00', 29.99, 5.00, false, 34.99),  -- false: cash
 (3, 3, '2023-01-03 14:00:00', 49.99, 5.00, true, 54.99),
 (4, 4, '2023-01-04 15:00:00', 39.99, 5.00, false, 44.99),
-(5, 5, '2023-01-05 16:00:00', 59.99, 5.00, true, 64.99);
+(5, 5, '2023-01-05 16:00:00', 59.99, 5.00, true, 64.99),
+(6, 6, '2024-09-06 17:00:00', 79.99, 5.00, false, 84.99); -- Additional order for user 6
+
+-- Insert mock orders for January to May 2025
+INSERT INTO public.Orders (user_id, location_id, date, total_product_cost, total_shipping_cost, payment_method, total_price) VALUES
+-- January 2025
+(1, 1, '2025-01-10 10:00:00', 100.00, 10.00, true, 110.00),  -- User 1, Location 1
+(2, 2, '2025-01-15 11:00:00', 200.00, 15.00, false, 215.00), -- User 2, Location 2
+(3, 3, '2025-01-20 12:00:00', 150.00, 12.00, true, 162.00),  -- User 3, Location 3
+-- February 2025
+(4, 4, '2025-02-05 13:00:00', 250.00, 20.00, false, 270.00), -- User 4, Location 4
+(5, 5, '2025-02-10 14:00:00', 300.00, 25.00, true, 325.00),  -- User 5, Location 5
+(1, 1, '2025-02-15 15:00:00', 180.00, 15.00, true, 195.00),  -- User 1, Location 1
+-- March 2025
+(2, 2, '2025-03-01 16:00:00', 120.00, 10.00, false, 130.00), -- User 2, Location 2
+(3, 3, '2025-03-15 17:00:00', 220.00, 18.00, true, 238.00),  -- User 3, Location 3
+(4, 4, '2025-03-20 18:00:00', 160.00, 12.00, false, 172.00), -- User 4, Location 4
+-- April 2025
+(5, 5, '2025-04-05 19:00:00', 280.00, 22.00, true, 302.00),  -- User 5, Location 5
+(1, 1, '2025-04-10 20:00:00', 190.00, 15.00, false, 205.00), -- User 1, Location 1
+-- May 2025
+(2, 2, '2025-05-01 21:00:00', 130.00, 10.00, true, 140.00),  -- User 2, Location 2
+(3, 3, '2025-05-10 22:00:00', 240.00, 20.00, false, 260.00), -- User 3, Location 3
+(4, 4, '2025-05-15 23:00:00', 170.00, 15.00, true, 185.00);  -- User 4, Location 4
+
+-- Insert mock orders for May 29, 2024, to November 29, 2024
+INSERT INTO public.Orders (user_id, location_id, date, total_product_cost, total_shipping_cost, payment_method, total_price) VALUES
+-- June 2024
+(1, 1, '2024-06-10 10:00:00', 80.00, 8.00, true, 88.00),   -- User 1, Location 1
+(2, 2, '2024-06-15 11:00:00', 150.00, 12.00, false, 162.00), -- User 2, Location 2
+-- July 2024
+(3, 3, '2024-07-01 12:00:00', 120.00, 10.00, true, 130.00),  -- User 3, Location 3
+(4, 4, '2024-07-10 13:00:00', 200.00, 15.00, false, 215.00), -- User 4, Location 4
+-- August 2024
+(5, 5, '2024-08-05 14:00:00', 250.00, 20.00, true, 270.00),  -- User 5, Location 5
+(1, 1, '2024-08-15 15:00:00', 90.00, 9.00, true, 99.00),    -- User 1, Location 1
+-- September 2024
+(2, 2, '2024-09-01 16:00:00', 110.00, 10.00, false, 120.00), -- User 2, Location 2
+(3, 3, '2024-09-10 17:00:00', 180.00, 15.00, true, 195.00),  -- User 3, Location 3
+-- October 2024
+(4, 4, '2024-10-05 18:00:00', 160.00, 12.00, false, 172.00), -- User 4, Location 4
+(5, 5, '2024-10-15 19:00:00', 220.00, 18.00, true, 238.00),  -- User 5, Location 5
+-- November 2024 (before Nov 29, 2024, 22:16:00)
+(1, 1, '2024-11-01 20:00:00', 100.00, 10.00, true, 110.00),  -- User 1, Location 1
+(2, 2, '2024-11-10 21:00:00', 130.00, 10.00, false, 140.00); -- User 2, Location 2
 
 -- Insert into OrderProduct (associating orders with products, with quantity)
 INSERT INTO public.OrderProduct (order_id, product_id, quantity) VALUES
@@ -266,3 +317,6 @@ INSERT INTO public.OrderVoucher (order_id, voucher_id) VALUES
 (1, 1), -- Order 1 uses product voucher
 (2, 2), -- Order 2 uses shipping voucher
 (3, 3); -- Order 3 uses payment voucher
+
+
+SELECT * FROM Users;

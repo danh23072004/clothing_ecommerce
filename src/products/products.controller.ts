@@ -25,6 +25,13 @@ export class ProductsController {
 		return this.productsService.findAll();
 	}
 
+	// Move /categories route before /:id to avoid route conflict
+	@Get('categories')
+	getAllCategories() {
+		console.log('Fetching all categories');
+		return this.productsService.getAllCategories();
+	}
+
 	@Get(':id')
 	findOne(@Param('id') id: string) {
 		return this.productsService.findOne(+id);
