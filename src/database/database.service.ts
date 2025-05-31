@@ -1,12 +1,17 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from 'generated/prisma';
 
 @Injectable()
-export class DatabaseService extends PrismaClient implements OnModuleInit {
+export class DatabaseService
+	extends PrismaClient
+	implements OnModuleInit, OnModuleDestroy
+{
 	async onModuleInit() {
 		await this.$connect();
 		console.log(`Database connected successfully`);
-		const products = await this.product.findMany();
-		console.log(`Found ${products.length} products in the database`);
+	}
+	async onModuleDestroy() {
+		await this.$disconnect();
+		console.log(`Database disconnected successfully`);
 	}
 }

@@ -64,3 +64,13 @@ SELECT
 FROM Orders o
 WHERE o.date >= CURRENT_TIMESTAMP - interval '12 months'
     AND o.date < CURRENT_TIMESTAMP - interval '6 months';
+
+-- Query for this question: "Fetches a list of products that belong to a specific category"
+SELECT c.id, c.category_name, cp.product_id, p.name
+FROM category AS c
+    LEFT JOIN categoryproduct AS cp ON c.id = cp.category_id
+    LEFT JOIN product AS p ON cp.product_id = p.id
+WHERE c.category_name = 'Shoes';
+
+-- Enable unaccent
+CREATE EXTENSION IF NOT EXISTS unaccent;
