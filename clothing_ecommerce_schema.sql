@@ -28,7 +28,8 @@ CREATE TABLE Users
 (
     id            SERIAL PRIMARY KEY,
     is_registered BOOLEAN NOT NULL,
-    name          VARCHAR(100),
+    full_name          VARCHAR(100),
+    user_name     VARCHAR(100) UNIQUE,
     email         VARCHAR(100) UNIQUE,
     password      VARCHAR(255),
     phone         VARCHAR(20),
@@ -179,18 +180,21 @@ SELECT 0, 0.00
 FROM GENERATE_SERIES(1, 11);
 
 -- Insert into Users (10 entries: 5 registered, 5 guests)
-INSERT INTO public.Users (is_registered, name, email, password, phone, location_id, cart_id)
-VALUES (TRUE, 'John Doe', 'john@example.com', 'password123', '0123456789', 1, 1),
-       (TRUE, 'Jane Smith', 'jane@example.com', 'password456', '0987654321', 2, 2),
-       (TRUE, 'Alice Johnson', 'alice@example.com', 'password789', '0112233445', 3, 3),
-       (TRUE, 'Bob Brown', 'bob@example.com', 'passwordabc', '0556677889', 4, 4),
-       (TRUE, 'Charlie Davis', 'charlie@example.com', 'passworddef', '0998877665', 5, 5),
-       (TRUE, 'Nguyen Minh Hieu', 'minhhieu@example.com', 'passwordminh_hieu', '0123456780', 6, 6),
-       (FALSE, 'Guest1', NULL, NULL, NULL, NULL, 7),
-       (FALSE, 'Guest2', NULL, NULL, NULL, NULL, 8),
-       (FALSE, 'Guest3', NULL, NULL, NULL, NULL, 9),
-       (FALSE, 'Guest4', NULL, NULL, NULL, NULL, 10),
-       (FALSE, 'Guest5', NULL, NULL, NULL, NULL, 11);
+INSERT INTO public.Users (is_registered, full_name, user_name, email, password, phone, location_id, cart_id)
+VALUES
+    -- Registered users: map 'name' to 'full_name', generate 'user_name'
+    (TRUE, 'John Doe', 'johndoe', 'john@example.com', 'password123', '0123456789', 1, 1),
+    (TRUE, 'Jane Smith', 'janesmith', 'jane@example.com', 'password456', '0987654321', 2, 2),
+    (TRUE, 'Alice Johnson', 'alicejohnson', 'alice@example.com', 'password789', '0112233445', 3, 3),
+    (TRUE, 'Bob Brown', 'bobbrown', 'bob@example.com', 'passwordabc', '0556677889', 4, 4),
+    (TRUE, 'Charlie Davis', 'charliedavis', 'charlie@example.com', 'passworddef', '0998877665', 5, 5),
+    (TRUE, 'Nguyen Minh Hieu', 'minhhieu', 'minhhieu@example.com', 'passwordminh_hieu', '0123456780', 6, 6),
+    -- Guest users: map 'name' to 'user_name', generate Vietnamese 'full_name'
+    (FALSE, 'Nguyen Van An', 'Guest1', NULL, NULL, NULL, NULL, 7),
+    (FALSE, 'Tran Thi Bich', 'Guest2', NULL, NULL, NULL, NULL, 8),
+    (FALSE, 'Le Hoang Long', 'Guest3', NULL, NULL, NULL, NULL, 9),
+    (FALSE, 'Pham Thi Mai', 'Guest4', NULL, NULL, NULL, NULL, 10),
+    (FALSE, 'Hoang Van Nam', 'Guest5', NULL, NULL, NULL, NULL, 11);
 
 -- Insert into DiscountEntity (14 entries to support categories and products)
 DO
@@ -216,23 +220,15 @@ VALUES ('Fashion Store', 0),
        ('Accessory Shop', 0),
        ('Shoe Outlet', 0);
 
-WITH product_counts AS (
-    SELECT
-        store_id,
-        COUNT(*) AS cnt
-    FROM
-        Product
-    GROUP BY
-        store_id
-)
+WITH product_counts AS (SELECT store_id,
+                               COUNT(*) AS cnt
+                        FROM Product
+                        GROUP BY store_id)
 UPDATE
     Store
-SET
-    num_of_products = COALESCE(product_counts.cnt, 0)
-FROM
-    product_counts
-WHERE
-    Store.id = product_counts.store_id;
+SET num_of_products = COALESCE(product_counts.cnt, 0)
+FROM product_counts
+WHERE Store.id = product_counts.store_id;
 
 
 -- Insert into Product (14 entries with store_id and discount_entity_id)
@@ -409,7 +405,8 @@ VALUES (3);
 INSERT INTO public.OrderVoucher (order_id, voucher_id)
 VALUES (1, 1), -- Order 1 uses product voucher
        (2, 2), -- Order 2 uses shipping voucher
-       (3, 3); -- Order 3 uses payment voucher
+       (3, 3);
+-- Order 3 uses payment voucher
 
 
 -- SELECT *
