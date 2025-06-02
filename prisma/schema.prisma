@@ -16,11 +16,11 @@ model cart {
 }
 
 model category {
-  id                 Int               @id @default(autoincrement())
-  discount_entity_id Int?              @unique
-  category_name      String            @db.VarChar(100)
-  discountentity     discountentity?   @relation(fields: [discount_entity_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  categoryproduct    categoryproduct[]
+  id              Int               @id @default(autoincrement())
+  discount_id     Int?
+  category_name   String            @db.VarChar(100)
+  discount        discount?         @relation(fields: [discount_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  categoryproduct categoryproduct[]
 }
 
 model categoryproduct {
@@ -33,23 +33,19 @@ model categoryproduct {
 }
 
 model discount {
-  id                 Int             @id @default(autoincrement())
-  discount_entity_id Int?
-  description        String?
-  discountentity     discountentity? @relation(fields: [discount_entity_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
-
-model discountentity {
-  id             Int              @id @default(autoincrement())
-  category       category?
-  discount       discount[]
-  product        product?
-  productvoucher productvoucher[]
+  id             Int        @id @default(autoincrement())
+  description    String?
+  discount_type  Boolean
+  discount_value Int
+  category       category[]
+  product        product[]
 }
 
 model fee {
-  id         Int          @id @default(autoincrement())
-  productfee productfee[]
+  id          Int          @id @default(autoincrement())
+  fee_type    Boolean
+  amount_type Boolean
+  productfee  productfee[]
 }
 
 model orderproduct {
@@ -63,18 +59,18 @@ model orderproduct {
 }
 
 model orders {
-  id                  Int            @id @default(autoincrement())
-  user_id             Int?
-  location_id         Int?
-  date                DateTime?      @default(now()) @db.Timestamp(6)
-  total_product_cost  Decimal?       @db.Decimal(10, 2)
-  total_shipping_cost Decimal?       @db.Decimal(10, 2)
-  payment_method      Boolean?
-  total_price         Decimal?       @db.Decimal(10, 2)
-  orderproduct        orderproduct[]
-  location            location?      @relation(fields: [location_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  users               users?         @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  ordervoucher        ordervoucher[]
+  id                 Int            @id @default(autoincrement())
+  user_id            Int?
+  location_id        Int?
+  date               DateTime?      @default(now()) @db.Timestamp(6)
+  total_product_cost Decimal?       @db.Decimal(10, 2)
+  total_fee_cost     Decimal?       @db.Decimal(10, 2)
+  payment_method     Boolean?
+  total_price        Decimal?       @db.Decimal(10, 2)
+  orderproduct       orderproduct[]
+  location           location?      @relation(fields: [location_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users              users?         @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  ordervoucher       ordervoucher[]
 }
 
 model ordervoucher {
@@ -92,18 +88,19 @@ model paymentvoucher {
 }
 
 model product {
-  id                 Int               @id @default(autoincrement())
-  store_id           Int?
-  discount_entity_id Int?              @unique
-  name               String            @db.VarChar(100)
-  price              Decimal           @db.Decimal(10, 2)
-  size               String?           @db.VarChar(20)
-  color              String?           @db.VarChar(20)
-  categoryproduct    categoryproduct[]
-  orderproduct       orderproduct[]
-  discountentity     discountentity?   @relation(fields: [discount_entity_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  store              store?            @relation(fields: [store_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  productfee         productfee[]
+  id              Int               @id @default(autoincrement())
+  store_id        Int?
+  discount_id     Int?
+  name            String            @db.VarChar(100)
+  price           Decimal           @db.Decimal(10, 2)
+  size            String?           @db.VarChar(20)
+  color           String?           @db.VarChar(20)
+  categoryproduct categoryproduct[]
+  orderproduct    orderproduct[]
+  discount        discount?         @relation(fields: [discount_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  store           store?            @relation(fields: [store_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  productfee      productfee[]
+  productvoucher  productvoucher[]
 }
 
 model productfee {
@@ -116,10 +113,10 @@ model productfee {
 }
 
 model productvoucher {
-  voucher_id         Int             @id
-  discount_entity_id Int?
-  discountentity     discountentity? @relation(fields: [discount_entity_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  voucher            voucher         @relation(fields: [voucher_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  voucher_id Int      @id
+  product_id Int?
+  product    product? @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  voucher    voucher  @relation(fields: [voucher_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model shippingvoucher {
@@ -136,31 +133,31 @@ model store {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model users {
-  id            Int       @id @default(autoincrement())
+  id            Int           @id @default(autoincrement())
   is_registered Boolean
-  full_name     String?   @db.VarChar(100)
-  user_name     String?   @unique @db.VarChar(100)
-  email         String?   @unique @db.VarChar(100)
-  password      String?   @db.VarChar(255)
-  phone         String?   @db.VarChar(20)
+  full_name     String?       @db.VarChar(100)
+  user_name     String?       @unique @db.VarChar(100)
+  email         String?       @unique @db.VarChar(100)
+  password      String?       @db.VarChar(255)
+  phone         String?       @db.VarChar(20)
   location_id   Int?
-  cart_id       Int?      @unique
+  cart_id       Int?          @unique
   orders        orders[]
-  cart          cart?     @relation(fields: [cart_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  location      location? @relation(fields: [location_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  voucher       voucher[]
+  cart          cart?         @relation(fields: [cart_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  location      location?     @relation(fields: [location_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  uservoucher   uservoucher[]
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model voucher {
   id              Int              @id @default(autoincrement())
-  user_id         Int?
   is_percentage   Boolean
+  value           Int?
   ordervoucher    ordervoucher[]
   paymentvoucher  paymentvoucher?
   productvoucher  productvoucher?
   shippingvoucher shippingvoucher?
-  users           users?           @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  uservoucher     uservoucher[]
 }
 
 model location {
@@ -172,4 +169,14 @@ model location {
   housing_type String?  @db.VarChar(50)
   orders       orders[]
   users        users[]
+}
+
+model uservoucher {
+  user_id    Int
+  voucher_id Int
+  amount     Int?
+  users      users   @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  voucher    voucher @relation(fields: [voucher_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([user_id, voucher_id])
 }
