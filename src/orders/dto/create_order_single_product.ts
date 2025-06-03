@@ -1,19 +1,8 @@
-import {
-	IsArray,
-	IsInt,
-	IsNotEmpty,
-	IsOptional,
-	IsBoolean,
-} from 'class-validator';
+import { IsArray, IsNotEmpty, IsOptional, IsBoolean } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 // This DTO is used for creating an order with a single product by a registered user.
 export class CreateOrderSingleProductDto {
-	@IsInt()
-	@IsNotEmpty()
-	@ApiProperty()
-	userId: number;
-
 	@IsBoolean()
 	@IsNotEmpty()
 	@ApiProperty()

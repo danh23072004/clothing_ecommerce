@@ -1,13 +1,15 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreateOrderSingleProductDto } from './dto/create_order_single_product';
-import { DatabaseService } from '../database/database.service';
-import { CreateOrderCartProducts } from './dto/create_order_cart_products';
+import { Injectable } from '@nestjs/common';
+import { DatabaseService } from '../../database/database.service';
+import { VoucherService } from '../../vouchers/vouchers.service';
 
 @Injectable()
-export class OrdersService {
-	constructor(private readonly databaseService: DatabaseService) {}
+export class CostCalculationService {
+	constructor(
+		private readonly databaseService: DatabaseService,
+		private readonly voucherService: VoucherService,
+	) {}
 
-	private async calculateTotalProductCost(
+	async calculateTotalProductCost(
 		productList: { productId: number; quantity: number }[],
 		userId: number,
 		voucherList: number[] = [],
@@ -28,21 +30,14 @@ export class OrdersService {
 		// Map products for efficient lookup
 		const productMap = new Map(products.map((p) => [p.id, p]));
 
-		// Fetch user's available vouchers
-		const userVouchers = await this.databaseService.uservoucher.findMany({
-			where: {
-				user_id: userId,
-				voucher_id: { in: voucherList },
-				amount: { gt: 0 },
-			},
-			select: { voucher_id: true, amount: true },
-		});
-		const availableAmounts: { [key: number]: number } = {};
-		userVouchers.forEach((uv) => {
-			availableAmounts[uv.voucher_id] = uv.amount || 0;
-		});
+		// Get available voucher amounts
+		const availableAmounts =
+			await this.voucherService.getAvailableVoucherAmounts(
+				userId,
+				voucherList,
+			);
 
-		// Count voucher occurrences in voucherList
+		// Count voucher occurrences
 		const voucherCounts: { [key: number]: number } = {};
 		voucherList.forEach((voucherId) => {
 			voucherCounts[voucherId] = (voucherCounts[voucherId] || 0) + 1;
@@ -62,10 +57,8 @@ export class OrdersService {
 			// Apply discount if it exists
 			if (product.discount) {
 				if (product.discount.discount_type) {
-					// Percentage discount
 					price *= 1 - product.discount.discount_value / 100;
 				} else {
-					// Fixed amount discount
 					price -= product.discount.discount_value;
 				}
 				if (price < 0) price = 0;
@@ -111,13 +104,11 @@ export class OrdersService {
 				const fee = pf.fee;
 				let feeAmount: number;
 				if (fee.amount_type) {
-					// Percentage fee based on original price
 					feeAmount =
 						Number(product.price) *
 						((fee.fee_value || 0) / 100) *
 						item.quantity;
 				} else {
-					// Fixed fee
 					feeAmount = (fee.fee_value || 0) * item.quantity;
 				}
 
@@ -196,92 +187,5 @@ export class OrdersService {
 		const totalPrice = totalProductCost + totalFeeCost;
 
 		return { totalProductCost, totalFeeCost, totalPrice };
-	}
-
-	async orderSingleProduct(
-		createOrderDto: CreateOrderSingleProductDto,
-		userId: number,
-	) {
-		// Fetch the single product
-		const single_product = await this.databaseService.product.findUnique({
-			where: { id: createOrderDto.products.productId },
-		});
-
-		if (!single_product) {
-			throw new BadRequestException('Product not found.');
-		}
-
-		// Calculate costs
-		const costs = await this.calculateTotalProductCost(
-			[
-				{
-					productId: single_product.id,
-					quantity: createOrderDto.products.quantity,
-				},
-			],
-			userId,
-			createOrderDto.voucherIds,
-		);
-
-		// Fetch user's location
-		const user = await this.databaseService.users.findUnique({
-			where: { id: userId },
-			select: { location_id: true },
-		});
-
-		if (!user) {
-			throw new BadRequestException('User not found.');
-		}
-
-		// Create the order
-		const order = await this.databaseService.orders.create({
-			data: {
-				user_id: userId,
-				location_id: user.location_id,
-				total_product_cost: costs.totalProductCost,
-				total_fee_cost: costs.totalFeeCost,
-				payment_method: createOrderDto.paymentMethod,
-				total_price: costs.totalPrice,
-				orderproduct: {
-					create: [
-						{
-							product_id: single_product.id,
-							quantity: createOrderDto.products.quantity,
-						},
-					],
-				},
-			},
-		});
-
-		// Reduce the amount of vouchers used
-		if (createOrderDto.voucherIds && createOrderDto.voucherIds.length > 0) {
-			await Promise.all(
-				createOrderDto.voucherIds.map(async (voucherId) => {
-					await this.databaseService.uservoucher.updateMany({
-						where: {
-							user_id: userId,
-							voucher_id: voucherId,
-							amount: { gt: 0 },
-						},
-						data: { amount: { decrement: 1 } },
-					});
-				}),
-			);
-		}
-
-		return order;
-	}
-
-	orderCartProducts(createOrderDto: CreateOrderCartProducts) {
-		// TODO: Implement cart product ordering
-		return null;
-	}
-
-	async findAll() {
-		return this.databaseService.orders.findMany();
-	}
-
-	findOne(id: number) {
-		return `This action returns a #${id} order`;
 	}
 }

@@ -17,7 +17,7 @@ export class OrdersController {
 		@Body() createOrderDto: CreateOrderSingleProductDto,
 		@User() user: users,
 	) {
-		return this.ordersService.orderSingleProduct(createOrderDto);
+		return this.ordersService.orderSingleProduct(createOrderDto, user.id);
 	}
 
 	@Get()
