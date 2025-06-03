@@ -44,6 +44,7 @@ model discount {
 model fee {
   id          Int          @id @default(autoincrement())
   fee_type    Boolean
+  fee_value   Int?
   amount_type Boolean
   productfee  productfee[]
 }

@@ -40,10 +40,10 @@ CREATE TABLE Users
 -- Create Discount table
 CREATE TABLE Discount
 (
-    id                 SERIAL PRIMARY KEY,
-    description        TEXT,
-    discount_type      BOOLEAN NOT NULL, -- true for percentage, false for fixed amount
-    discount_value     INTEGER NOT NULL  -- value of the discount, percentage or fixed amount
+    id             SERIAL PRIMARY KEY,
+    description    TEXT,
+    discount_type  BOOLEAN NOT NULL, -- true for percentage, false for fixed amount
+    discount_value INTEGER NOT NULL  -- value of the discount, percentage or fixed amount
 );
 
 -- Create Category table with foreign key to Discount
@@ -87,6 +87,7 @@ CREATE TABLE Fee
 (
     id          SERIAL PRIMARY KEY,
     fee_type    BOOLEAN NOT NULL, -- true for shipping fee (1), false for payment fee (0)
+    fee_value   INTEGER,          -- Value of the fee, can be percentage or fixed amount
     amount_type BOOLEAN NOT NULL  -- true for percentage (1), false for fixed amount (0)
 );
 
@@ -101,14 +102,14 @@ CREATE TABLE ProductFee
 -- Create Orders table with relationships to Users and Location, payment_method as BOOLEAN
 CREATE TABLE Orders
 (
-    id                  SERIAL PRIMARY KEY,
-    user_id             INT REFERENCES Users (id),
-    location_id         INT REFERENCES Location (id),
-    date                TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    total_product_cost  DECIMAL(10, 2),
-    total_fee_cost DECIMAL(10, 2),
-    payment_method      BOOLEAN, -- true for online payment (1), false for cash (0)
-    total_price         DECIMAL(10, 2)
+    id                 SERIAL PRIMARY KEY,
+    user_id            INT REFERENCES Users (id),
+    location_id        INT REFERENCES Location (id),
+    date               TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    total_product_cost DECIMAL(10, 2),
+    total_fee_cost     DECIMAL(10, 2),
+    payment_method     BOOLEAN, -- true for online payment (1), false for cash (0)
+    total_price        DECIMAL(10, 2)
 );
 
 -- Create junction table for Orders and Product (M:N) with quantity field
@@ -133,7 +134,7 @@ CREATE TABLE UserVoucher
 (
     user_id    INT REFERENCES Users (id),
     voucher_id INT REFERENCES Voucher (id),
-    amount    INTEGER, -- Amount of the voucher left for the user
+    amount     INTEGER, -- Amount of the voucher left for the user
     PRIMARY KEY (user_id, voucher_id)
 );
 
@@ -271,24 +272,24 @@ VALUES (1, 1),
        (3, 19),
        (3, 20);
 
--- Insert into Fee (3 entries, updated to include fee_type and amount_type)
-INSERT INTO public.Fee (fee_type, amount_type)
-VALUES (TRUE, TRUE),  -- Shipping fee, percentage-based
-       (TRUE, FALSE), -- Shipping fee, fixed amount
-       (FALSE, TRUE); -- Payment fee, percentage-based
+-- Insert into Fee (3 entries, updated to include fee_type, fee_value, and amount_type)
+INSERT INTO public.Fee (fee_type, fee_value, amount_type)
+VALUES (TRUE, 5, TRUE),   -- 5% shipping fee (percentage-based)
+       (TRUE, 50000, FALSE), -- 50,000 VND shipping fee (fixed amount)
+       (FALSE, 3, TRUE);  -- 3% payment fee (percentage-based)
 
 -- Insert into ProductFee (associating products with fees)
 INSERT INTO public.ProductFee (product_id, fee_id)
-VALUES (1, 1), -- T-Shirt with shipping fee (percentage)
-       (2, 1), -- Jeans with shipping fee (percentage)
-       (3, 2), -- Jacket with shipping fee (fixed)
-       (4, 2), -- Sweater with shipping fee (fixed)
-       (5, 3), -- Hat with payment fee (percentage)
-       (6, 3), -- Scarf with payment fee (percentage)
-       (7, 3), -- Gloves with payment fee (percentage)
-       (8, 1), -- Sneakers with shipping fee (percentage)
-       (9, 2), -- Boots with shipping fee (fixed)
-       (10, 3); -- Sandals with payment fee (percentage)
+VALUES (1, 1), -- T-Shirt with shipping fee (5%)
+       (2, 1), -- Jeans with shipping fee (5%)
+       (3, 2), -- Jacket with shipping fee (50,000 VND)
+       (4, 2), -- Sweater with shipping fee (50,000 VND)
+       (5, 3), -- Hat with payment fee (3%)
+       (6, 3), -- Scarf with payment fee (3%)
+       (7, 3), -- Gloves with payment fee (3%)
+       (8, 1), -- Sneakers with shipping fee (5%)
+       (9, 2), -- Boots with shipping fee (50,000 VND)
+       (10, 3); -- Sandals with payment fee (3%)
 
 -- Insert into Orders (6 entries with payment_method as boolean)
 INSERT INTO public.Orders (user_id, location_id, date, total_product_cost, total_fee_cost, payment_method, total_price)

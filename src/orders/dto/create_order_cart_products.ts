@@ -12,10 +12,6 @@ export class CreateOrderCartProducts {
 	@IsNotEmpty()
 	userId: number;
 
-	@IsInt()
-	@IsNotEmpty()
-	locationId: number;
-
 	@IsDate()
 	@IsNotEmpty()
 	date: Date;

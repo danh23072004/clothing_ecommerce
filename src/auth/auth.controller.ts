@@ -14,7 +14,7 @@ export class AuthController {
 	}
 
 	@Post('login')
-	@ApiOkResponse({ type: AuthResponse })
+	// @ApiOkResponse({ type: AuthResponse })
 	async login(
 		@Body() { userName, password }: LoginDto,
 	): Promise<AuthResponse> {
